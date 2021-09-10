@@ -1,0 +1,9 @@
+version: '3.6'
+
+services:
+  bulk-mailing:
+    build: .
+    command: tail -F anything # only for development
+    volumes:
+      - ./:/usr/src/app
+
