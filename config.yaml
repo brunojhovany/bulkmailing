@@ -1,0 +1,9 @@
+config:
+  email:
+    user_name: "jhovanymb.302@gmail.com"
+    password: "kuykiajkcwioecik"
+    email_data:
+      subject: "Get a chance to win exclusive reward"
+    SMTP_SSL:
+      port: 465
+      host: "smtp.gmail.com"
