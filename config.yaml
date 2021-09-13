@@ -2,7 +2,14 @@ config:
   email:
     user_name: "jhovanymb.302@gmail.com"
     password: "kuykiajkcwioecik"
+    creative:
+      path: "creative"
+      file_name: "preview.html"
+    data:
+      path: "data"
+      file_name: "example.csv"
     email_data:
+      sender: "Cosco"
       subject: "Get a chance to win exclusive reward"
     SMTP_SSL:
       port: 465

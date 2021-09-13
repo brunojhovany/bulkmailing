@@ -1,3 +1,4 @@
+import sys
 import time
 import ssl
 import smtplib
@@ -5,7 +6,7 @@ from loguru import logger
 from yaml import safe_load
 from datetime import datetime
 from yaml.error import YAMLError
-from pandas import read_excel, DataFrame
+from pandas import read_excel, DataFrame, read_csv
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -15,15 +16,20 @@ date_now = datetime.now()
 date_str = date_now.strftime('%Y-%m-%d')
 logger.add(f'logs/file_{date_str}.log', rotation="12:00", level='ERROR')
 
+def throw(_, error, message, *args, **kwargs):
+    message = message.format(*args, **kwargs)
+    logger.opt(depth=1).error(message)
+    sys.exit(1)
 
-with open('config.yaml', 'r') as stream:
-    try:
+logger.__class__.throw = throw
+
+try:
+    with open('config.yaml', 'r') as stream:
         config = safe_load(stream)
         config = config['config']
-    except YAMLError as err:
-        err_inf = f'Error al cargar el archivo de configuracion | {err}'
-        logger.error(err_inf)
-        raise Exception(err_inf)
+except Exception as err:
+    err_inf = f'Error al cargar el archivo de configuracion ☠️ | {err}'
+    logger.throw(err, err_inf)
 
 
 
@@ -38,35 +44,41 @@ def sendMail():
     server.ehlo()
     try:
         server.login(user=email_sender,password= email_password)
-        logger.info('Inicio de sesion con la cuenta de correo exitoso.')
+        logger.success('Inicio de sesion con la cuenta de correo exitoso.')
     except smtplib.SMTPAuthenticationError as err:
         err_inf = f'Error al iniciar sesion en la cuenta de correo | {err}'
-        logger.error(err_inf)
-        raise Exception(err_inf)
+        logger.throw(err, err_inf)
 
-    data :DataFrame = read_excel('data/example-data.xlsx')
-    
-    with open('creative/preview.html', 'r', encoding="utf8") as file:
-        creative = file.read().replace('\n', '')
+    try:
+        data_config = email_config['data']
+        data :DataFrame = read_csv('%s/%s'%(data_config['path'], data_config['file_name']))
+
+        creative_config:dict = email_config['creative']
+        with open('%s/%s' % (creative_config['path'], creative_config['file_name']), 'r', encoding="utf8") as file:
+            creative = file.read().replace('\n', '')
+    except Exception as err:
+        err_inf = f'Error al cargar los archivos necesarios | {err}'
+        logger.throw(err, err_inf)
 
 
     html = creative
     email_data = email_config['email_data']
     message = MIMEMultipart("alternative")
-    message["From"] = email_sender
+    message["From"] = email_data['sender']
     message.attach(MIMEText(html, "html"))
     count = 0
 
     for index, element in data.iterrows():
-        print(index, element)
         name_reader: str = element['First Name']
         message["Subject"] =  f'{name_reader} ' + email_data['subject']
         count += 1
-        logger.info(str(count) + ". Sent to " + element['Email'])
-
-        server.sendmail(
-            email_sender, data['Email'], message.as_string()
-        )
+        try:
+            server.sendmail(
+                email_sender, element['Email'], message.as_string()
+            )
+            logger.info(str(count) + ". Sent to " + element['Email'])
+        except Exception as error:
+            logger.error("No se pudo enviar el correo al destinatario: %s ☠️" %element['Email'])
 
         if(count%80 == 0):
             server.quit()
@@ -78,5 +90,5 @@ def sendMail():
 
 
 if __name__ == '__main__':
-    logger.info('Iniciando aplicacion..')
+    logger.info('Iniciando aplicacion... 📬🔥 | version:1.0.0')
     sendMail()
