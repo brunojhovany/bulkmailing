@@ -1,16 +1,17 @@
 config:
   email:
-    user_name: "jhovanymb.302@gmail.com"
-    password: "kuykiajkcwioecik"
+    user_name: "no-reply@reedem.site"
+    password: "2NN7baa7i5"
     creative:
       path: "creative"
-      file_name: "preview.html"
+      file_name: "saludando.html"
     data:
       path: "data"
-      file_name: "example.csv"
+      file_name: "example-data.xlsx"
     email_data:
-      sender: "Cosco"
-      subject: "Get a chance to win exclusive reward"
+      sender: "no-reply@reedem.site"
+      subject: "Hola es solo un mensaje de prueba - subject"
+      bodytext: "Hola solo es un mensaje de prueba"
     SMTP_SSL:
       port: 465
-      host: "smtp.gmail.com"
+      host: "mail.reedem.site"

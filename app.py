@@ -9,7 +9,7 @@ from yaml.error import YAMLError
 from pandas import read_excel, DataFrame, read_csv
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
+import email
 
 config = None
 date_now = datetime.now()
@@ -51,7 +51,7 @@ def sendMail():
 
     try:
         data_config = email_config['data']
-        data :DataFrame = read_csv('%s/%s'%(data_config['path'], data_config['file_name']))
+        data :DataFrame = read_excel('%s/%s'%(data_config['path'], data_config['file_name']))
 
         creative_config:dict = email_config['creative']
         with open('%s/%s' % (creative_config['path'], creative_config['file_name']), 'r', encoding="utf8") as file:
@@ -65,12 +65,16 @@ def sendMail():
     email_data = email_config['email_data']
     message = MIMEMultipart("alternative")
     message["From"] = email_data['sender']
+    message.attach(MIMEText(email_data['bodytext'], "plain"))
     message.attach(MIMEText(html, "html"))
     count = 0
 
     for index, element in data.iterrows():
         name_reader: str = element['First Name']
         message["Subject"] =  f'{name_reader} ' + email_data['subject']
+        message["To"] = element['Email']
+        message['Date'] = email.utils.formatdate()
+        message['Message-ID'] = email.utils.make_msgid(domain="reedem.site")
         count += 1
         try:
             server.sendmail(
